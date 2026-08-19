@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cloud Health healthcare management portal">
+  <title>Cloud Health Portal</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#dashboard" aria-label="Cloud Health home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" role="img"><path d="M20 3a17 17 0 1 0 17 17A17 17 0 0 0 20 3Zm8 20h-5v5h-6v-5h-5v-6h5v-5h6v5h5Z"/></svg>
+        </span>
+        <span><strong>Cloud</strong> Health<small>Clinical workspace</small></span>
+      </a>
+
+      <nav class="main-nav" aria-label="Primary navigation">
+        <button class="nav-item active" data-view="dashboard"><span>⌂</span>Overview</button>
+        <button class="nav-item" data-view="patients"><span>♙</span>Patients</button>
+        <button class="nav-item" data-view="appointments"><span>□</span>Appointments</button>
+        <button class="nav-item" data-view="records"><span>◇</span>Diagnostics</button>
+        <button class="nav-item" data-view="metrics"><span>⌁</span>Health metrics</button>
+        <button class="nav-item" data-view="files"><span>▱</span>Medical files</button>
+      </nav>
+
+      <div class="sidebar-context">
+        <span class="eyebrow">Active patient</span>
+        <div id="sidebar-patient" class="context-empty">Select a patient to begin</div>
+      </div>
+      <div class="environment"><i></i><span>Gateway connection</span><strong id="connection-state">Checking</strong></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="menu-button" class="icon-button menu-button" aria-label="Open navigation">☰</button>
+        <div>
+          <span class="eyebrow">Enterprise care platform</span>
+          <h1 id="page-title">Good care starts with clarity.</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="refresh-button" class="secondary-button">↻ Refresh</button>
+          <div class="user-chip"><span>HD</span><div>Clinical Admin<small>Authorized user</small></div></div>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view active">
+        <div class="hero-card">
+          <div>
+            <span class="hero-kicker">Cloud-native care coordination</span>
+            <h2>One patient story,<br>connected end to end.</h2>
+            <p>Manage profiles, visits, diagnostics and clinical files across three independent services through one secure gateway.</p>
+            <button class="primary-button" data-go="patients">Find a patient <span>→</span></button>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="pulse-orbit"><span></span><i></i><b></b></div>
+            <div class="floating-stat"><small>Platform</small><strong>3</strong><span>connected services</span></div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <article class="stat-card"><span class="stat-icon blue">♙</span><div><small>Patients loaded</small><strong id="stat-patients">—</strong><span>Current search result</span></div></article>
+          <article class="stat-card"><span class="stat-icon coral">□</span><div><small>Appointments</small><strong id="stat-appointments">—</strong><span>Active patient</span></div></article>
+          <article class="stat-card"><span class="stat-icon violet">◇</span><div><small>Diagnostic records</small><strong id="stat-records">—</strong><span>Active patient</span></div></article>
+          <article class="stat-card"><span class="stat-icon green">▱</span><div><small>Medical files</small><strong id="stat-files">—</strong><span>Private storage</span></div></article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel patient-focus">
+            <div class="panel-heading"><div><span class="eyebrow">Patient context</span><h3>Continue where you left off</h3></div></div>
+            <div id="dashboard-patient" class="empty-state compact"><span>♙</span><h4>No patient selected</h4><p>Choose a patient to unlock their clinical workspace.</p></div>
+          </article>
+          <article class="panel service-panel">
+            <div class="panel-heading"><div><span class="eyebrow">Architecture</span><h3>Service status</h3></div><span class="live-badge">Live routes</span></div>
+            <div class="service-list">
+              <div><i class="service-dot blue"></i><span><strong>Patient Service</strong><small>Cloud SQL · Port 8081</small></span><b>Relational</b></div>
+              <div><i class="service-dot violet"></i><span><strong>Diagnostics Service</strong><small>MongoDB · Port 8082</small></span><b>Document</b></div>
+              <div><i class="service-dot green"></i><span><strong>File Service</strong><small>GCS + Firestore · Port 8083</small></span><b>Object</b></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-patients" class="view">
+        <div class="section-toolbar">
+          <div><span class="eyebrow">Patient registry</span><h2>People in your care</h2><p>Search by name, medical record number, email or phone.</p></div>
+          <button class="primary-button" data-toggle="patient-form">+ Register patient</button>
+        </div>
+        <div id="patient-form-panel" class="panel form-panel hidden">
+          <div class="panel-heading"><div><span class="eyebrow">New profile</span><h3>Register a patient</h3></div><button class="close-button" data-toggle="patient-form" aria-label="Close">×</button></div>
+          <form id="patient-form" class="form-grid">
+            <label>First name<input name="firstName" required maxlength="100" autocomplete="given-name"></label>
+            <label>Last name<input name="lastName" required maxlength="100" autocomplete="family-name"></label>
+            <label>Date of birth<input name="dateOfBirth" type="date" required></label>
+            <label>Gender<select name="gender" required><option value="">Select</option><option>FEMALE</option><option>MALE</option><option>NON_BINARY</option><option>OTHER</option><option>PREFER_NOT_TO_SAY</option></select></label>
+            <label>Email<input name="email" type="email" maxlength="254" autocomplete="email"></label>
+            <label>Phone<input name="phone" required maxlength="30" autocomplete="tel" placeholder="+94 77 123 4567"></label>
+            <label>Blood type<select name="bloodType"><option value="">Unknown</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></label>
+            <label>Emergency contact<input name="emergencyContactName" maxlength="200"></label>
+            <label class="span-2">Address<input name="address" maxlength="500" autocomplete="street-address"></label>
+            <label>Emergency phone<input name="emergencyContactPhone" maxlength="30"></label>
+            <label class="span-2">Medical history summary<textarea name="medicalHistorySummary" maxlength="4000" rows="3"></textarea></label>
+            <div class="form-actions span-2"><button type="button" class="secondary-button" data-toggle="patient-form">Cancel</button><button class="primary-button" type="submit">Create patient</button></div>
+          </form>
+        </div>
+        <div class="panel">
+          <div class="table-toolbar">
+            <label class="search-box"><span>⌕</span><input id="patient-search" placeholder="Search patients…"><kbd>Enter</kbd></label>
+            <button id="patient-search-button" class="secondary-button">Search</button>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Patient</th><th>Medical record</th><th>Contact</th><th>Blood type</th><th></th></tr></thead><tbody id="patient-table"></tbody></table>
+          </div>
+          <div id="patient-empty" class="empty-state hidden"><span>⌕</span><h4>No matching patients</h4><p>Try a different search or register a new profile.</p></div>
+        </div>
+      </section>
+
+      <section id="view-appointments" class="view patient-view">
+        <div class="section-toolbar"><div><span class="eyebrow">Care schedule</span><h2>Appointments</h2><p id="appointments-subtitle">Select a patient to manage visits.</p></div><button class="primary-button require-patient" data-toggle="appointment-form">+ Schedule visit</button></div>
+        <div id="appointment-form-panel" class="panel form-panel hidden">
+          <div class="panel-heading"><div><span class="eyebrow">New appointment</span><h3>Schedule a visit</h3></div><button class="close-button" data-toggle="appointment-form">×</button></div>
+          <form id="appointment-form" class="form-grid">
+            <label>Date and time<input name="scheduledAt" type="datetime-local" required></label>
+            <label>Duration<select name="durationMinutes"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option><option value="90">90 minutes</option></select></label>
+            <label>Practitioner<input name="practitionerName" required maxlength="200"></label>
+            <label>Department<input name="department" required maxlength="150"></label>
+            <label class="span-2">Reason<input name="reason" required maxlength="1000"></label>
+            <label class="span-2">Notes<textarea name="notes" maxlength="2000" rows="3"></textarea></label>
+            <div class="form-actions span-2"><button class="secondary-button" type="button" data-toggle="appointment-form">Cancel</button><button class="primary-button">Schedule appointment</button></div>
+          </form>
+        </div>
+        <div id="appointments-list" class="card-list"></div>
+      </section>
+
+      <section id="view-records" class="view patient-view">
+        <div class="section-toolbar"><div><span class="eyebrow">Medical records</span><h2>Diagnostics</h2><p id="records-subtitle">Structured summaries with flexible clinical JSON.</p></div><button class="primary-button require-patient" data-toggle="record-form">+ Add record</button></div>
+        <div id="record-form-panel" class="panel form-panel hidden">
+          <div class="panel-heading"><div><span class="eyebrow">New diagnostic</span><h3>Create a draft record</h3></div><button class="close-button" data-toggle="record-form">×</button></div>
+          <form id="record-form" class="form-grid">
+            <label>Type<select name="type" required><option>LAB_RESULT</option><option>IMAGING</option><option>CLINICAL_NOTE</option><option>VITAL_SIGNS</option><option>PATHOLOGY</option><option>OTHER</option></select></label>
+            <label>Recorded by<input name="recordedBy" required maxlength="200"></label>
+            <label class="span-2">Title<input name="title" required maxlength="250"></label>
+            <label class="span-2">Summary<textarea name="summary" maxlength="4000" rows="3"></textarea></label>
+            <label class="span-2">Diagnostic data (JSON)<textarea name="diagnosticData" class="code-input" required rows="7">{
+  "result": "Normal",
+  "notes": ""
+}</textarea><small>Flexible JSON supports nested lab results and device data.</small></label>
+            <div class="form-actions span-2"><button class="secondary-button" type="button" data-toggle="record-form">Cancel</button><button class="primary-button">Create draft</button></div>
+          </form>
+        </div>
+        <div id="records-list" class="card-list"></div>
+      </section>
+
+      <section id="view-metrics" class="view patient-view">
+        <div class="section-toolbar"><div><span class="eyebrow">Longitudinal health</span><h2>Health metrics</h2><p id="metrics-subtitle">Track measurements from devices and clinical encounters.</p></div><button class="primary-button require-patient" data-toggle="metric-form">+ Record metric</button></div>
+        <div id="metric-form-panel" class="panel form-panel hidden">
+          <div class="panel-heading"><div><span class="eyebrow">New measurement</span><h3>Record a health metric</h3></div><button class="close-button" data-toggle="metric-form">×</button></div>
+          <form id="metric-form" class="form-grid">
+            <label>Metric type<select name="type"><option>HEART_RATE</option><option>BLOOD_PRESSURE</option><option>TEMPERATURE</option><option>BLOOD_GLUCOSE</option><option>OXYGEN_SATURATION</option><option>WEIGHT</option><option>ACTIVITY</option><option>SLEEP</option><option>OTHER</option></select></label>
+            <label>Source<input name="source" value="Clinical portal" required maxlength="200"></label>
+            <label class="span-2">Measurements (JSON)<textarea name="measurements" class="code-input" required rows="6">{
+  "value": 72,
+  "unit": "bpm"
+}</textarea></label>
+            <div class="form-actions span-2"><button class="secondary-button" type="button" data-toggle="metric-form">Cancel</button><button class="primary-button">Save measurement</button></div>
+          </form>
+        </div>
+        <div id="metrics-list" class="metric-grid"></div>
+      </section>
+
+      <section id="view-files" class="view patient-view">
+        <div class="section-toolbar"><div><span class="eyebrow">Private object storage</span><h2>Medical files</h2><p id="files-subtitle">Images and reports secured with short-lived download links.</p></div><button class="primary-button require-patient" data-toggle="file-form">+ Upload file</button></div>
+        <div id="file-form-panel" class="panel form-panel hidden">
+          <div class="panel-heading"><div><span class="eyebrow">GCP Cloud Storage</span><h3>Upload a medical file</h3></div><button class="close-button" data-toggle="file-form">×</button></div>
+          <form id="file-form" class="form-grid" enctype="multipart/form-data">
+            <label class="span-2 file-drop"><input name="file" type="file" required accept=".pdf,.dcm,.jpg,.jpeg,.png,.webp"><span>⇧</span><strong>Choose a medical image or report</strong><small>PDF, DICOM, JPEG, PNG or WebP · maximum 25 MiB</small></label>
+            <label>Category<select name="category"><option>XRAY</option><option>MRI</option><option>CT_SCAN</option><option>ULTRASOUND</option><option>LAB_REPORT</option><option>PRESCRIPTION</option><option>CLINICAL_DOCUMENT</option><option>OTHER</option></select></label>
+            <label>Uploaded by<input name="uploadedBy" required maxlength="200"></label>
+            <label class="span-2">Description<input name="description" maxlength="1000"></label>
+            <div class="form-actions span-2"><button class="secondary-button" type="button" data-toggle="file-form">Cancel</button><button class="primary-button">Upload securely</button></div>
+          </form>
+        </div>
+        <div id="files-list" class="file-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <div id="loading" class="loading-overlay hidden" aria-live="polite"><div class="spinner"></div><span>Updating clinical workspace…</span></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

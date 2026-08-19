@@ -1,0 +1,25 @@
+substitutions:
+  _REGION: asia-south1
+  _SERVICE: cloud-health-portal
+  _API_GATEWAY_URL: http://replace-with-gateway-load-balancer
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -t, '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-health/frontend:$BUILD_ID', .]
+  - name: gcr.io/cloud-builders/docker
+    args: [push, '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-health/frontend:$BUILD_ID']
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - '${_SERVICE}'
+      - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-health/frontend:$BUILD_ID'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=API_GATEWAY_URL=${_API_GATEWAY_URL}'
+      - '--port=8080'
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-health/frontend:$BUILD_ID'
