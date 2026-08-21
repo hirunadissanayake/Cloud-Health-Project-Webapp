@@ -1,8 +1,8 @@
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
+import { request as httpsRequest } from 'node:https';
 import { createReadStream, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { Readable } from 'node:stream';
 
 const moduleDirectory = fileURLToPath(new URL('.', import.meta.url));
 const DEFAULT_BODY_LIMIT = 30 * 1024 * 1024;
@@ -48,35 +48,36 @@ export function createRequestHandler({
 
 async function proxyApi(request, response, requestUrl, gateway, bodyLimit) {
   const target = new URL(requestUrl.pathname + requestUrl.search, gateway);
-  const headers = new Headers();
+  const headers = {};
   for (const [name, value] of Object.entries(request.headers)) {
     if (value !== undefined && !['host', 'connection', 'content-length'].includes(name.toLowerCase())) {
-      headers.set(name, Array.isArray(value) ? value.join(', ') : value);
+      headers[name] = value;
     }
   }
-  headers.set('x-forwarded-host', request.headers.host || '');
-  headers.set('x-forwarded-proto', request.socket.encrypted ? 'https' : 'http');
+  headers['x-forwarded-host'] = request.headers.host || '';
+  headers['x-forwarded-proto'] = request.socket.encrypted ? 'https' : 'http';
 
   const body = ['GET', 'HEAD'].includes(request.method) ? undefined : await readBody(request, bodyLimit);
-  const upstream = await fetch(target, {
-    method: request.method,
-    headers,
-    body,
-    redirect: 'manual',
-    signal: AbortSignal.timeout(30_000)
-  });
+  const requestUpstream = target.protocol === 'https:' ? httpsRequest : httpRequest;
 
-  response.statusCode = upstream.status;
-  for (const [name, value] of upstream.headers) {
-    if (!['connection', 'content-encoding', 'content-length', 'transfer-encoding'].includes(name.toLowerCase())) {
-      response.setHeader(name, value);
-    }
-  }
-  setSecurityHeaders(response);
-  if (!upstream.body) {
-    return response.end();
-  }
-  Readable.fromWeb(upstream.body).pipe(response);
+  await new Promise((resolve, reject) => {
+    const upstream = requestUpstream(target, { method: request.method, headers }, upstreamResponse => {
+      response.statusCode = upstreamResponse.statusCode || 502;
+      for (const [name, value] of Object.entries(upstreamResponse.headers)) {
+        if (value !== undefined && !['connection', 'keep-alive', 'transfer-encoding', 'upgrade'].includes(name.toLowerCase())) {
+          response.setHeader(name, value);
+        }
+      }
+      setSecurityHeaders(response);
+      upstreamResponse.on('error', reject);
+      upstreamResponse.on('end', resolve);
+      upstreamResponse.pipe(response);
+    });
+
+    upstream.setTimeout(30_000, () => upstream.destroy(new Error('upstream request timeout')));
+    upstream.on('error', reject);
+    upstream.end(body);
+  });
 }
 
 async function readBody(request, limit) {
